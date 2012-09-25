@@ -1,6 +1,8 @@
 require 'bundler'
 Bundler.require
 
+require 'open-uri'
+
 # Fix for bug in AppConfig
 require 'erb'
 AppConfig.configure do |config|
@@ -35,9 +37,9 @@ class AutoQwert
   end
 
   def run
-    response = Typhoeus::Request.get("http://qwertee.com", follow_location: true)
-    if response.success?
-      html = Nokogiri::HTML.parse response.body
+    response = open("http://qwertee.com")
+    if body = response.read
+      html = Nokogiri::HTML.parse body
       image = html.at_css("#splash-picture-actual")
       send_error("No image found") and return unless image
       if image['src'] != @current_image
@@ -49,7 +51,7 @@ class AutoQwert
         end
       end
     else
-      send_error(response.body)
+      send_error
     end
   end
 
